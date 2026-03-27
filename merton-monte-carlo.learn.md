@@ -1,9 +1,9 @@
 ---
 title: "The Merton Model and Monte Carlo Simulation"
 lang: en
+spec_version: "0.2"
 tags: [merton, monte-carlo, credit-risk, stochastic-calculus, quantitative-finance]
 estimated_time: 90min
-math: true
 ---
 
 # The Merton Model and Monte Carlo Simulation
@@ -50,7 +50,8 @@ Therefore the **exact GBM solution** is:
 
 $$\boxed{V_T = V_0 \exp\!\left(\left(\mu - \frac{\sigma^2}{2}\right)T + \sigma W_T\right)}$$
 
-```example title="Numerical illustration"
+```python
+# Numerical illustration
 V0    = 100     # initial firm value
 mu    = 0.06    # annual drift (6%)
 sigma = 0.20    # annual volatility (20%)
@@ -145,7 +146,8 @@ $$\text{DD} = \frac{\ln(V_0/D) + \left(\mu - \frac{\sigma_V^2}{2}\right)T}{\sigm
 
 So $\text{PD}^{\mathbb{P}} = N(-\text{DD})$. This is the KMV/Moody's Analytics metric widely used in practice.
 
-```example title="Merton model — worked example"
+```python
+# Merton model — worked example
 # Firm parameters
 V0    = 150     # firm asset value (£M)
 D     = 100     # debt face value (£M)
@@ -155,27 +157,23 @@ r     = 0.04    # risk-free rate
 T     = 1       # 1 year
 
 # d1, d2 (risk-neutral)
-d1 = (ln(150/100) + (0.04 + 0.03125) × 1) / (0.25 × 1)
-   = (0.4055 + 0.0713) / 0.25
-   = 1.906
-
-d2 = 1.906 - 0.25 = 1.656
+d1 = (ln(150/100) + (0.04 + 0.03125) * 1) / (0.25 * 1)
+   # = (0.4055 + 0.0713) / 0.25 = 1.906
+d2 = 1.906 - 0.25  # = 1.656
 
 # Equity value
-E0 = 150 × N(1.906) - 100 × exp(-0.04) × N(1.656)
-   = 150 × 0.9717 - 96.08 × 0.9511
-   ≈ 145.75 - 91.37 ≈ 54.38 (£M)
+E0 = 150 * N(1.906) - 100 * exp(-0.04) * N(1.656)
+   # ≈ 145.75 - 91.37 ≈ 54.38 (£M)
 
 # Risk-neutral PD
-PD_Q = N(-1.656) ≈ 4.9%
+PD_Q = N(-1.656)  # ≈ 4.9%
 
 # Physical PD (using mu instead of r)
-d2_phys = (ln(150/100) + (0.08 - 0.03125)) / 0.25
-        = (0.4055 + 0.04875) / 0.25 = 1.817
-PD_P = N(-1.817) ≈ 3.5%
+d2_phys = (ln(150/100) + (0.08 - 0.03125)) / 0.25  # = 1.817
+PD_P = N(-1.817)  # ≈ 3.5%
 
-# Distance to Default
-DD = 1.817   (firm is ~1.8 std devs above default threshold)
+# Distance to Default: firm is ~1.8 std devs above default threshold
+DD = 1.817
 ```
 
 > [!tip]
@@ -209,7 +207,8 @@ For path-dependent problems (barriers, early default), discretise over $n$ steps
 
 $$V_{t+\Delta t}^{(i)} = V_t^{(i)} \exp\!\left(\left(\mu - \frac{\sigma^2}{2}\right)\Delta t + \sigma\sqrt{\Delta t}\cdot Z^{(i)}_t\right)$$
 
-```example title="Monte Carlo PD estimation — Python pseudocode"
+```python
+# Monte Carlo PD estimation
 import numpy as np
 
 # Parameters
@@ -255,12 +254,13 @@ The $95\%$ confidence interval is $\hat{\text{PD}} \pm 1.96 \cdot \text{SE}$.
 | **Quasi-Monte Carlo** | Sobol/Halton low-discrepancy sequences | $10\text{–}100\times$ |
 | **Importance sampling** | Shift the sampling distribution towards the rare event | Large for small PD |
 
-```example title="Antithetic variates"
-# Instead of N standard normals:
+```python
+# Antithetic variates — variance reduction example
+# Instead of N independent standard normals, use N/2 pairs:
 Z_pos = np.random.standard_normal(N // 2)
 Z_neg = -Z_pos                              # antithetic pair
 
-Z = np.concatenate([Z_pos, Z_neg])          # N samples, but correlated in pairs
+Z = np.concatenate([Z_pos, Z_neg])          # N samples, correlated in pairs
 
 V_T = V0 * np.exp((mu - 0.5*sigma**2)*T + sigma*np.sqrt(T)*Z)
 PD_av = (V_T < D).mean()
@@ -296,18 +296,16 @@ $$\begin{cases} E_0 = V_0 N(d_1) - D e^{-rT} N(d_2) \\ \sigma_E E_0 = N(d_1) \cd
 3. Re-estimate $\sigma_V$ from the time series of $V_t$
 4. Repeat until convergence
 
-```example title="Calibration challenge"
-# Observed market data:
+```python
+# Calibration challenge — observed market data
 E0      = 50       # equity market cap (£M)
 sigma_E = 0.45     # equity volatility (annualised)
 D       = 80       # book value of debt (£M)
 r       = 0.04     # risk-free rate
 T       = 1        # 1-year horizon
 
-# Solve for V0, sigma_V numerically:
-# Two equations, two unknowns
-# Solution (approximately):
-#   V0     ≈ 128 (£M)  — firm total assets
+# Solve for V0, sigma_V numerically (two equations, two unknowns):
+#   V0      ≈ 128 (£M)  — firm total assets
 #   sigma_V ≈ 0.176     — asset volatility
 
 # Note: asset volatility (17.6%) << equity volatility (45%)
@@ -344,18 +342,17 @@ T       = 1        # 1-year horizon
 
 ## Summary
 
-```summary
-- **GBM**: $dV_t = \mu V_t\,dt + \sigma V_t\,dW_t$ — exact solution via Itô's lemma gives log-normal $V_T$
-- **Merton model**: equity = call on firm assets; default if $V_T < D$ at maturity $T$
-- **Equity pricing**: $E_0 = V_0 N(d_1) - D e^{-rT} N(d_2)$ (Black-Scholes formula)
-- **Default probabilities**: $\text{PD}^{\mathbb{Q}} = N(-d_2)$ (risk-neutral), $\text{PD}^{\mathbb{P}} = N(-\text{DD})$ (physical)
-- **Distance to Default**: $\text{DD} = [\ln(V_0/D) + (\mu - \sigma^2/2)T] / (\sigma\sqrt{T})$
-- **Monte Carlo**: simulate $V_T^{(i)} = V_0\exp((\mu-\sigma^2/2)T + \sigma\sqrt{T}Z^{(i)})$, count defaults
-- **Precision**: SE $= \sqrt{p(1-p)/N}$ — quadruple $N$ to halve the error
-- **Variance reduction**: antithetic variates, control variates, quasi-Monte Carlo
-- **Calibration**: solve two-equation system for $V_0$, $\sigma_V$ from observable equity data
-- **Limitations**: maturity-only default, flat short spreads, simple capital structure
-```
+> [!summary]
+> - **GBM**: $dV_t = \mu V_t\,dt + \sigma V_t\,dW_t$ — exact solution via Itô's lemma gives log-normal $V_T$
+> - **Merton model**: equity = call on firm assets; default if $V_T < D$ at maturity $T$
+> - **Equity pricing**: $E_0 = V_0 N(d_1) - D e^{-rT} N(d_2)$ (Black-Scholes formula)
+> - **Default probabilities**: $\text{PD}^{\mathbb{Q}} = N(-d_2)$ (risk-neutral), $\text{PD}^{\mathbb{P}} = N(-\text{DD})$ (physical)
+> - **Distance to Default**: $\text{DD} = [\ln(V_0/D) + (\mu - \sigma^2/2)T] / (\sigma\sqrt{T})$
+> - **Monte Carlo**: simulate $V_T^{(i)} = V_0\exp((\mu-\sigma^2/2)T + \sigma\sqrt{T}Z^{(i)})$, count defaults
+> - **Precision**: SE $= \sqrt{p(1-p)/N}$ — quadruple $N$ to halve the error
+> - **Variance reduction**: antithetic variates, control variates, quasi-Monte Carlo
+> - **Calibration**: solve two-equation system for $V_0$, $\sigma_V$ from observable equity data
+> - **Limitations**: maturity-only default, flat short spreads, simple capital structure
 
 ---
 
