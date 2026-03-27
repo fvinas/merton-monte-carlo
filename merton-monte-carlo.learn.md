@@ -12,6 +12,14 @@ This path teaches you the Merton structural credit risk model from first princip
 
 **Prerequisites:** basic probability, some familiarity with stochastic calculus is helpful but not required.
 
+> [!objectives]
+> By the end of this lesson, you will be able to:
+> - Derive the exact solution of a Geometric Brownian Motion using Itô's lemma
+> - Explain the Merton model: equity as a call option on firm assets, default at maturity
+> - Compute Distance to Default (DD) and risk-neutral / physical default probabilities
+> - Implement a Monte Carlo simulation to estimate default probability empirically
+> - Calibrate the Merton model from observable equity data
+
 ---
 
 ## Part 1 — Geometric Brownian Motion
